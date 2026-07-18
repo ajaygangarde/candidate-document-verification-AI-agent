@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Runtime: python3.13
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        S3_BUCKET: !Ref DocumentsBucket
+        BEDROCK_MODEL_CATEGORISE: amazon.nova-micro-v1:0
+        BEDROCK_MODEL_EXTRACT: amazon.nova-lite-v1:0
+        BEDROCK_MODEL_ANALYSE: amazon.nova-pro-v1:0
+        DATABASE_URL: "{{resolve:ssm:/recruiter-ai/prod/database-url}}"
+
+Resources:
+
+  DocumentsBucket:
+    Type: AWS::S3::Bucket
+
+  CandidateDocumentVerificationApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+
+  # Single FastAPI app (via Mangum) serving all synchronous API routes.
+  # Heavy/async work stays in dedicated functions (see ProcessVerificationFunction).
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CDV-Api
+      Handler: recruitment.app.handler
+      CodeUri: ../src
+      Environment:
+        Variables:
+          CDV_VERIFICATION_FUNCTION_NAME: !Ref ProcessVerificationFunction
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref DocumentsBucket
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessVerificationFunction
+      Events:
+        Proxy:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CandidateDocumentVerificationApi
+            Path: /{proxy+}
+            Method: ANY
+        Root:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CandidateDocumentVerificationApi
+            Path: /
+            Method: ANY
+
+  ProcessVerificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CDV-ProcessVerification
+      Handler: recruitment.dcp.handlers.process_verification.handler
+      CodeUri: ../src
+      Timeout: 300
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref DocumentsBucket
+        - Statement:
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:GetFoundationModel
+            Resource: !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/*"

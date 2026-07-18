@@ -1,0 +1,36 @@
+[project]
+name = "recruitment"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Ajay Gangarde", email = "ajaygangarde@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "aws-lambda-powertools>=3.31.0",
+    "cryptography>=44.0.0",
+    "boto3>=1.43.37",
+    "langgraph>=1.2.7",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.14.2",
+    "pymupdf>=1.28.0",
+    "python-dotenv>=1.2.2",
+    "psycopg[binary]>=3.3.4",
+    "fastapi>=0.139.0",
+    "mangum>=0.21.0",
+]
+
+[project.scripts]
+recruitment = "recruitment:main"
+
+[build-system]
+requires = ["uv_build>=0.11.26,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.15.20",
+    "uvicorn>=0.34.0",
+]
