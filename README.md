@@ -54,11 +54,11 @@ The recruiter can correct AI mistakes at every phase before moving forward — n
                                               │  ├─────────┤            │
                                               │  │experience│           │
                                               │  │_node    │            │
-                                              │  │(Sonnet) │            │
+                                              │  │            │
                                               │  ├─────────┤            │
                                               │  │payslip  │            │
                                               │  │_node    │            │
-                                              │  │(Nova Pro)│           │
+                                              │  ││           │
                                               │  └────┬────┘            │
                                               │       │                 │
                                               │  persist_node → DB      │
