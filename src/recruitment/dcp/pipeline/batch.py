@@ -80,9 +80,11 @@ def run_batch(verification_id: str, s3_keys: list[str]) -> dict:
             salary_trend = calculate_salary_trend(payslip_extractions)
             if salary_trend:
                 salary_assessment.recent_increment = salary_trend
-                logger.info("Salary trend", increment_detected=salary_trend.detected,
-                           increment_amount=salary_trend.increment_amount,
-                           increment_percentage=salary_trend.increment_percentage)
+                logger.info("Salary trend",
+                           trend=salary_trend.trend,
+                           change_amount=salary_trend.change_amount,
+                           change_percentage=salary_trend.change_percentage,
+                           change_confidence=salary_trend.change_confidence)
 
     # Persist and return
     results = {

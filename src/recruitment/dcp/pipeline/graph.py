@@ -75,7 +75,10 @@ def payslip_extract_node(state: PipelineState) -> dict:
         logger.info("Payslip extracted",
                     s3_key=doc["s3_key"],
                     pay_period=payslip_data.pay_period,
-                    annual_ctc=payslip_data.annual_ctc,
+                    annual_salary_value=payslip_data.annual_salary.value if payslip_data.annual_salary else None,
+                    annual_salary_source=payslip_data.annual_salary.source if payslip_data.annual_salary else None,
+                    annual_salary_confidence=payslip_data.annual_salary.confidence if payslip_data.annual_salary else None,
+                    human_review_required=payslip_data.annual_salary.human_review_required if payslip_data.annual_salary else False,
                     extraction_time_seconds=round(extraction_time, 2))
         extractions.append(payslip_data.model_dump())
 
@@ -118,8 +121,9 @@ def payslip_assess_node(state: PipelineState) -> dict:
         verification=verification,
         company_segment=candidate.get("company_segment", "MNC"),
     )
-    assessment.extraction_time_seconds = None
     assessment.analysis_time_seconds = round(analysis_time, 2)
+    assessment.salary_gap = round(candidate["expected_salary"] - assessment.current_salary, 2)
+    assessment.above_benchmark = assessment.current_salary > candidate["expected_salary"]
 
     # Salary trend across multiple payslips
     if len(payslips) > 1:
@@ -127,10 +131,14 @@ def payslip_assess_node(state: PipelineState) -> dict:
         if trend:
             assessment.recent_increment = trend
 
+    annual_salary = most_recent.annual_salary
     logger.info("Salary assessed",
                 justified=assessment.justified_salary,
                 current=assessment.current_salary,
-                expected=assessment.expected_salary)
+                expected=assessment.expected_salary,
+                ctc_source=annual_salary.source if annual_salary else "unknown",
+                ctc_confidence=annual_salary.confidence if annual_salary else "unknown",
+                human_review_required=annual_salary.human_review_required if annual_salary else False)
 
     return {"salary_assessment": assessment.model_dump()}
 

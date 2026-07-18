@@ -10,6 +10,7 @@ CREATE TABLE candidate_verifications (
     status                    TEXT      NOT NULL DEFAULT 'PENDING'
                                         CHECK (status IN ('PENDING', 'PROCESSING', 'DONE', 'FAILED')),
     document_keys             JSONB     NOT NULL DEFAULT '[]',
+    confirmed_categories      JSONB,
     experience_verification   JSONB,
     salary_assessment         JSONB,
     summary                   TEXT,

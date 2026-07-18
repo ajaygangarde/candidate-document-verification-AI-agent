@@ -32,8 +32,8 @@ LOCAL_FILES = EXPERIENCE_LETTERS + PAYSLIPS
 verification_id = create_candidate_verification(
     candidate_id=CANDIDATE_ID,
     candidate_name="Ajay Gangarde",
-    expected_experience_years=5.0,
-    expected_salary=90000.0,
+    expected_experience_years=9,
+    expected_salary=350000.0,
     currency="INR",
 )
 print(f"\nCandidate Verification: {verification_id}")

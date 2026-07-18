@@ -1,24 +1,27 @@
 from enum import Enum
+from typing import Literal
 from pydantic import BaseModel
 
 
 class VerificationVerdict(str, Enum):
     MATCH = "MATCH"
-    DISCREPANCY = "DISCREPANCY"
+    EXCEEDS_EXPECTATION = "EXCEEDS_EXPECTATION"   # candidate has more experience than required
+    DISCREPANCY = "DISCREPANCY"                   # candidate is below expectation
     INSUFFICIENT_DATA = "INSUFFICIENT_DATA"
 
 
 class GapFlag(str, Enum):
-    MATCH = "MATCH"  # Gap <= 3 months
-    WARNING = "WARNING"  # Gap 3-6 months
-    HIGH_DISCREPANCY = "HIGH_DISCREPANCY"  # Gap > 6 months
+    MATCH = "MATCH"                        # within range or above expectation
+    WARNING = "WARNING"                    # shortfall 3-6 months below expected
+    HIGH_DISCREPANCY = "HIGH_DISCREPANCY"  # shortfall > 6 months below expected
 
 
 class RecentIncrement(BaseModel):
-    detected: bool
-    previous_salary: float | None = None  # Previous month salary
-    increment_amount: float | None = None
-    increment_percentage: float | None = None  # percentage
+    trend: Literal["RAISE", "DECREASE", "STABLE"]
+    previous_salary: float | None = None
+    change_amount: float | None = None
+    change_percentage: float | None = None
+    change_confidence: Literal["high", "medium", "low"] = "medium"
 
 
 class ExperienceVerification(BaseModel):
@@ -36,9 +39,10 @@ class ExperienceVerification(BaseModel):
 class SalaryAssessment(BaseModel):
     current_salary: float
     expected_salary: float
+    salary_gap: float | None = None        # expected - current; negative = candidate above benchmark
+    above_benchmark: bool | None = None    # true when candidate earns more than the recruiter benchmark
     justified_salary: float
     currency: str
     rationale: str
-    recent_increment: RecentIncrement | None = None  # Salary trend across payslips
-    extraction_time_seconds: float | None = None
+    recent_increment: RecentIncrement | None = None
     analysis_time_seconds: float | None = None
